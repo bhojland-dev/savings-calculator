@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Opsparingsberegner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: inputs-panel øverst, resultat-tal, graf, og år-for-år tabel. To scenarier farvekodet A (blågrøn) og B (rav). */
+:root {
+  --bg: #f3f5f7;
+  --surface: #ffffff;
+  --fg: #16202b;
+  --muted: #5b6876;
+  --line: #d9dfe6;
+  --a: #0f7a6c;
+  --a-soft: rgba(15,122,108,.12);
+  --b: #b8650a;
+  --b-soft: rgba(184,101,10,.12);
+  --ink-btn: #16202b;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f151b; --surface: #17202a; --fg: #e8edf2; --muted: #93a1af; --line: #2a3643;
+    --a: #3cc3ae; --a-soft: rgba(60,195,174,.14); --b: #f0a24a; --b-soft: rgba(240,162,74,.14);
+    --ink-btn: #e8edf2; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f151b; --surface: #17202a; --fg: #e8edf2; --muted: #93a1af; --line: #2a3643;
+  --a: #3cc3ae; --a-soft: rgba(60,195,174,.14); --b: #f0a24a; --b-soft: rgba(240,162,74,.14);
+  --ink-btn: #e8edf2; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+}
+.wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 22px; }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(1.7rem, 4.5vw, 2.4rem); line-height: 1.1; margin: 0; letter-spacing: -.01em; text-wrap: balance; }
+.lede { color: var(--muted); margin: 6px 0 0; max-width: 62ch; }
+h2 { font-family: var(--display); font-weight: 500; font-size: 1.05rem; margin: 0 0 12px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; }
+.grid-in { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; }
+label { display: grid; gap: 5px; font-size: .78rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+input, select {
+  font: 500 1rem var(--mono); color: var(--fg); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 6px; padding: 9px 10px; width: 100%; min-width: 0;
+}
+input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--a); outline-offset: 2px; }
+.unit { position: relative; }
+.unit input { padding-right: 46px; }
+.unit span { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font: 400 .85rem var(--mono); color: var(--muted); pointer-events: none; }
+.scen { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.sc { border-radius: 8px; padding: 14px; display: grid; gap: 12px; border: 1px solid var(--line); }
+.sc.a { background: var(--a-soft); border-color: color-mix(in srgb, var(--a) 35%, transparent); }
+.sc.b { background: var(--b-soft); border-color: color-mix(in srgb, var(--b) 35%, transparent); }
+.sc-head { display: flex; align-items: center; gap: 8px; }
+.dot { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.a .dot { background: var(--a); } .b .dot { background: var(--b); }
+.sc-head input { font: 600 1rem var(--body); background: transparent; border: 0; border-bottom: 1px dashed var(--line); border-radius: 0; padding: 2px 0; }
+.sc .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.netto { font-size: .82rem; color: var(--muted); }
+.netto b { font-family: var(--mono); color: var(--fg); font-weight: 500; }
+.presets { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+.presets span { font-size: .82rem; color: var(--muted); }
+button.chip { font: 500 .82rem var(--body); color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+button.chip:hover { border-color: var(--fg); }
+
+.results { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.res { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 4px; min-width: 0; }
+.res .k { font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); display: flex; align-items: center; gap: 7px; }
+.res .v { font-family: var(--display); font-weight: 700; font-size: clamp(1.5rem, 4vw, 2rem); line-height: 1.15; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.res.a .v { color: var(--a); } .res.b .v { color: var(--b); }
+.res .s { font-size: .82rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.res.diff { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.res.diff .k, .res.diff .s { color: color-mix(in srgb, var(--bg) 70%, var(--fg)); }
+
+.chart-box { position: relative; }
+svg { display: block; width: 100%; height: auto; }
+svg text { font-family: var(--mono); font-size: 11px; fill: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: .82rem; color: var(--muted); margin-top: 8px; }
+.legend i { display: inline-block; width: 18px; height: 3px; border-radius: 2px; vertical-align: middle; margin-right: 6px; }
+.tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; font: 400 .8rem var(--mono); box-shadow: 0 4px 14px rgba(0,0,0,.12); white-space: nowrap; }
+
+.tbl-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: .88rem; min-width: 520px; }
+th, td { text-align: right; padding: 7px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); font-weight: 600; }
+td { font-family: var(--mono); }
+td.ca { color: var(--a); } td.cb { color: var(--b); }
+details summary { cursor: pointer; font-family: var(--display); font-weight: 500; font-size: 1.05rem; }
+details[open] summary { margin-bottom: 10px; }
+.note { font-size: .82rem; color: var(--muted); max-width: 75ch; margin: 0; }
+@media (prefers-reduced-motion: no-preference) { path.ln { transition: d .25s; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>Opsparingsberegner</h1>
+    <p class="lede">Se hvad opsparingen vokser til, og sammenlign to scenarier, fx passive indeksfonde mod aktivt forvaltede fonde. Felterne er udfyldt med eksempeltal.</p>
+  </header>
+
+  <section class="panel" aria-labelledby="h-ind">
+    <h2 id="h-ind">Indbetalinger</h2>
+    <div class="grid-in">
+      <label for="start">Startbeløb
+        <div class="unit"><input id="start" type="text" inputmode="numeric" value="100.000"><span>kr.</span></div>
+      </label>
+      <label for="pay">Indbetaling
+        <div class="unit"><input id="pay" type="text" inputmode="numeric" value="3.000"><span>kr.</span></div>
+      </label>
+      <label for="freq">Hyppighed
+        <select id="freq"><option value="12" selected>Pr. måned</option><option value="1">Pr. år</option></select>
+      </label>
+      <label for="years">Antal år
+        <div class="unit"><input id="years" type="number" min="1" max="70" step="1" value="20"><span>år</span></div>
+      </label>
+      <label for="growth">Årlig stigning i indbetaling
+        <div class="unit"><input id="growth" type="text" inputmode="decimal" value="0"><span>%</span></div>
+      </label>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-sc">
+    <h2 id="h-sc">Scenarier</h2>
+    <div class="scen">
+      <div class="sc a">
+        <div class="sc-head"><span class="dot"></span><input id="nameA" type="text" value="Passive indeksfonde" aria-label="Navn på scenarie A"></div>
+        <div class="row">
+          <label for="retA">Afkast før omk.
+            <div class="unit"><input id="retA" type="text" inputmode="decimal" value="7"><span>%/år</span></div>
+          </label>
+          <label for="costA">Omkostninger (ÅOP)
+            <div class="unit"><input id="costA" type="text" inputmode="decimal" value="0,4"><span>%/år</span></div>
+          </label>
+        </div>
+        <div class="netto">Nettoafkast: <b id="netA">6,6 %</b> om året</div>
+      </div>
+      <div class="sc b">
+        <div class="sc-head"><span class="dot"></span><input id="nameB" type="text" value="Aktive fonde" aria-label="Navn på scenarie B"></div>
+        <div class="row">
+          <label for="retB">Afkast før omk.
+            <div class="unit"><input id="retB" type="text" inputmode="decimal" value="7"><span>%/år</span></div>
+          </label>
+          <label for="costB">Omkostninger (ÅOP)
+            <div class="unit"><input id="costB" type="text" inputmode="decimal" value="1,3"><span>%/år</span></div>
+          </label>
+        </div>
+        <div class="netto">Nettoafkast: <b id="netB">5,7 %</b> om året</div>
+      </div>
+    </div>
+    <div class="presets">
+      <span>Sæt omkostninger til 0, hvis afkastet du indtaster allerede er efter omkostninger.</span>
+    </div>
+  </section>
+
+  <section class="results" aria-live="polite">
+    <div class="res a"><div class="k"><span class="dot" style="background:var(--a)"></span><span id="lblA">Passive indeksfonde</span></div><div class="v" id="valA">–</div><div class="s" id="subA"></div></div>
+    <div class="res b"><div class="k"><span class="dot" style="background:var(--b)"></span><span id="lblB">Aktive fonde</span></div><div class="v" id="valB">–</div><div class="s" id="subB"></div></div>
+    <div class="res diff"><div class="k">Forskel</div><div class="v" id="valD">–</div><div class="s" id="subD"></div></div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-graf">
+    <h2 id="h-graf">Udvikling over tid</h2>
+    <div class="chart-box" id="chartBox">
+      <svg id="chart" viewBox="0 0 900 360" role="img" aria-label="Graf over opsparingens udvikling"></svg>
+      <div class="tip" id="tip" hidden></div>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--a)"></i><span id="legA">A</span></span>
+      <span><i style="background:var(--b)"></i><span id="legB">B</span></span>
+      <span><i style="background:var(--muted);height:0;border-top:2px dashed var(--muted)"></i>Indbetalt i alt</span>
+    </div>
+  </section>
+
+  <section class="panel">
+    <details>
+      <summary>År for år</summary>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>År</th><th>Indbetalt i alt</th><th id="thA">A</th><th id="thB">B</th><th>Forskel</th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </details>
+  </section>
+
+  <p class="note">Beregningen er forenklet: afkast og omkostninger er faste hvert år, nettoafkastet er afkast minus ÅOP, og renters rente regnes månedligt. Månedlige indbetalinger sker sidst i hver måned, årlige sidst på året. Der er ikke regnet med skat (fx PAL-skat), inflation, kurtage eller faste kronegebyrer. Tidligere afkast er ingen garanti for fremtidige afkast.</p>
+</div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const fmt = new Intl.NumberFormat('da-DK', { maximumFractionDigits: 0 });
+  const pct = new Intl.NumberFormat('da-DK', { maximumFractionDigits: 2 });
+
+  const amountIds = ['start', 'pay'];
+  function num(id) {
+    let s = String($(id).value).trim().replace(/\s/g, '');
+    if (s === '') return 0;
+    if (amountIds.includes(id)) {
+      // beløb: punktum er altid tusindtalsseparator, komma er decimal
+      s = s.replace(/\./g, '').replace(',', '.');
+    } else {
+      // procent og år: både komma og punktum tæller som decimal
+      s = s.replace(',', '.');
+    }
+    const n = parseFloat(s);
+    return isFinite(n) ? n : 0;
+  }
+  function kr(n) { return fmt.format(Math.round(n)) + ' kr.'; }
+  function short(n) {
+    const a = Math.abs(n);
+    if (a >= 1e6) return pct.format(Math.round(n / 1e5) / 10) + ' mio.';
+    if (a >= 1e3) return fmt.format(Math.round(n / 1e3)) + 't';
+    return fmt.format(n);
+  }
+
+  // Simulér måned for måned
+  function simulate(start, pay, perYear, years, growth, netRate) {
+    const mRate = Math.pow(1 + netRate, 1 / 12) - 1;
+    let bal = start, paid = start, curPay = pay;
+    const rows = [{ year: 0, bal, paid }];
+    for (let y = 1; y <= years; y++) {
+      for (let m = 1; m <= 12; m++) {
+        bal *= (1 + mRate);
+        if (perYear === 12) { bal += curPay; paid += curPay; }
+      }
+      if (perYear === 1) { bal += curPay; paid += curPay; }
+      rows.push({ year: y, bal, paid });
+      curPay *= (1 + growth);
+    }
+    return rows;
+  }
+
+  function draw(rA, rB) {
+    const svg = $('chart');
+    const W = 900, H = 360, L = 70, R = 16, T = 16, B = 34;
+    const n = rA.length - 1;
+    const maxV = Math.max(...rA.map(r => r.bal), ...rB.map(r => r.bal), 1);
+    // pæn akse
+    const mag = Math.pow(10, Math.floor(Math.log10(maxV)));
+    const stepCand = [1, 2, 2.5, 5, 10].map(s => s * mag / 2);
+    let step = stepCand.find(s => maxV / s <= 6) || mag;
+    const top = Math.ceil(maxV / step) * step;
+    const x = i => L + (W - L - R) * (n ? i / n : 0);
+    const y = v => T + (H - T - B) * (1 - v / top);
+    let out = '';
+    for (let v = 0; v <= top + 1e-6; v += step) {
+      out += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/>`;
+      out += `<text x="${L - 8}" y="${y(v) + 4}" text-anchor="end">${short(v)}</text>`;
+    }
+    const xStep = n <= 10 ? 1 : n <= 25 ? 5 : 10;
+    for (let i = 0; i <= n; i += xStep) out += `<text x="${x(i)}" y="${H - 10}" text-anchor="middle">${i}</text>`;
+    if (n % xStep) out += `<text x="${x(n)}" y="${H - 10}" text-anchor="middle">${n}</text>`;
+    const path = rows => rows.map((r, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(r.bal).toFixed(1)).join(' ');
+    const area = rows => path(rows) + ` L${x(n)} ${y(0)} L${x(0)} ${y(0)} Z`;
+    const paidPath = rA.map((r, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(r.paid).toFixed(1)).join(' ');
+    out += `<path d="${area(rA)}" fill="var(--a-soft)" stroke="none"/>`;
+    out += `<path d="${paidPath}" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 4"/>`;
+    out += `<path class="ln" d="${path(rB)}" fill="none" stroke="var(--b)" stroke-width="2.5" stroke-linejoin="round"/>`;
+    out += `<path class="ln" d="${path(rA)}" fill="none" stroke="var(--a)" stroke-width="2.5" stroke-linejoin="round"/>`;
+    out += `<circle cx="${x(n)}" cy="${y(rA[n].bal)}" r="4.5" fill="var(--a)"/>`;
+    out += `<circle cx="${x(n)}" cy="${y(rB[n].bal)}" r="4.5" fill="var(--b)"/>`;
+    out += `<line id="hov" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="var(--muted)" stroke-width="1" visibility="hidden"/>`;
+    out += `<rect x="${L}" y="${T}" width="${W - L - R}" height="${H - T - B}" fill="transparent" id="hit"/>`;
+    svg.innerHTML = out;
+
+    const tip = $('tip'), box = $('chartBox'), hov = svg.querySelector('#hov');
+    const hit = svg.querySelector('#hit');
+    function move(ev) {
+      const rect = svg.getBoundingClientRect();
+      const px = (ev.clientX - rect.left) * (W / rect.width);
+      const i = Math.max(0, Math.min(n, Math.round((px - L) / ((W - L - R) / (n || 1)))));
+      hov.setAttribute('x1', x(i)); hov.setAttribute('x2', x(i)); hov.setAttribute('visibility', 'visible');
+      tip.innerHTML = `<b>År ${i}</b><br><span style="color:var(--a)">${esc($('nameA').value)}: ${kr(rA[i].bal)}</span><br><span style="color:var(--b)">${esc($('nameB').value)}: ${kr(rB[i].bal)}</span><br>Indbetalt: ${kr(rA[i].paid)}`;
+      tip.hidden = false;
+      const bx = box.getBoundingClientRect();
+      let left = ev.clientX - bx.left + 12;
+      if (left + tip.offsetWidth > bx.width) left = ev.clientX - bx.left - tip.offsetWidth - 12;
+      tip.style.left = Math.max(0, left) + 'px';
+      tip.style.top = Math.max(0, ev.clientY - bx.top - tip.offsetHeight - 10) + 'px';
+    }
+    hit.addEventListener('pointermove', move);
+    hit.addEventListener('pointerdown', move);
+    hit.addEventListener('pointerleave', () => { tip.hidden = true; hov.setAttribute('visibility', 'hidden'); });
+  }
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+  function calc() {
+    const start = Math.max(0, num('start'));
+    const pay = Math.max(0, num('pay'));
+    const perYear = parseInt($('freq').value, 10);
+    const years = Math.max(1, Math.min(70, Math.round(num('years')) || 1));
+    const growth = num('growth') / 100;
+    const netA = (num('retA') - num('costA')) / 100;
+    const netB = (num('retB') - num('costB')) / 100;
+    const nA = $('nameA').value || 'Scenarie A', nB = $('nameB').value || 'Scenarie B';
+
+    $('netA').textContent = pct.format(netA * 100) + ' %';
+    $('netB').textContent = pct.format(netB * 100) + ' %';
+
+    const rA = simulate(start, pay, perYear, years, growth, netA);
+    const rB = simulate(start, pay, perYear, years, growth, netB);
+    const endA = rA[years], endB = rB[years];
+
+    ['lblA', 'legA', 'thA'].forEach(id => $(id).textContent = nA);
+    ['lblB', 'legB', 'thB'].forEach(id => $(id).textContent = nB);
+    $('valA').textContent = kr(endA.bal);
+    $('valB').textContent = kr(endB.bal);
+    $('subA').textContent = `Heraf afkast: ${kr(endA.bal - endA.paid)}`;
+    $('subB').textContent = `Heraf afkast: ${kr(endB.bal - endB.paid)}`;
+    const d = endA.bal - endB.bal;
+    $('valD').textContent = (d > 0 ? '+' : d < 0 ? '−' : '') + kr(Math.abs(d));
+    const best = d >= 0 ? nA : nB, worst = d >= 0 ? nB : nA, base = Math.min(endA.bal, endB.bal);
+    $('subD').textContent = Math.abs(d) < 0.5 ? 'Ingen forskel' : `${best} giver ${pct.format(base ? Math.abs(d) / base * 100 : 0)} % mere end ${worst} efter ${years} år. Indbetalt i alt: ${kr(endA.paid)}`;
+
+    $('tbody').innerHTML = rA.slice(1).map((r, i) => {
+      const b = rB[i + 1];
+      const dd = r.bal - b.bal;
+      return `<tr><td>${r.year}</td><td>${fmt.format(Math.round(r.paid))}</td><td class="ca">${fmt.format(Math.round(r.bal))}</td><td class="cb">${fmt.format(Math.round(b.bal))}</td><td>${(dd > 0 ? '+' : dd < 0 ? '−' : '') + fmt.format(Math.round(Math.abs(dd)))}</td></tr>`;
+    }).join('');
+
+    draw(rA, rB);
+    try { localStorage.setItem('opsparing-v1', JSON.stringify(ids.reduce((o, id) => (o[id] = $(id).value, o), {}))); } catch (e) {}
+  }
+
+  const ids = ['start', 'pay', 'freq', 'years', 'growth', 'nameA', 'retA', 'costA', 'nameB', 'retB', 'costB'];
+  try {
+    const saved = JSON.parse(localStorage.getItem('opsparing-v1') || 'null');
+    if (saved) ids.forEach(id => { if (saved[id] != null) $(id).value = saved[id]; });
+  } catch (e) {}
+
+  // Formatér beløb med tusindtalsseparator når feltet forlades
+  ['start', 'pay'].forEach(id => $(id).addEventListener('blur', () => { $(id).value = fmt.format(Math.max(0, num(id))); }));
+  ids.forEach(id => { $(id).addEventListener('input', calc); $(id).addEventListener('change', calc); });
+  calc();
+})();
+</script>
+
+</body>
+</html>
