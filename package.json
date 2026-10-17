@@ -1,0 +1,24 @@
+{
+  "name": "savings-calculator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Savings calculator that compares how savings grow under two scenarios with different returns and annual costs (ÅOP).",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bhojland-dev/savings-calculator.git"
+  },
+  "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "check": "npm run format:check && npm run lint"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.13.0",
+    "eslint-plugin-html": "^8.2.1",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.10"
+  }
+}
