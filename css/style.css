@@ -1,0 +1,397 @@
+/* Layout: inputs-panel øverst, resultat-tal, graf, og år-for-år tabel. To scenarier farvekodet A (blågrøn) og B (rav). */
+:root {
+  --bg: #f3f5f7;
+  --surface: #ffffff;
+  --fg: #16202b;
+  --muted: #5b6876;
+  --line: #d9dfe6;
+  --a: #0f7a6c;
+  --a-soft: rgba(15, 122, 108, 0.12);
+  --b: #b8650a;
+  --b-soft: rgba(184, 101, 10, 0.12);
+  --ink-btn: #16202b;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --chev: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%235b6876' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f151b;
+    --surface: #17202a;
+    --fg: #e8edf2;
+    --muted: #93a1af;
+    --line: #2a3643;
+    --a: #3cc3ae;
+    --a-soft: rgba(60, 195, 174, 0.14);
+    --b: #f0a24a;
+    --b-soft: rgba(240, 162, 74, 0.14);
+    --ink-btn: #e8edf2;
+    color-scheme: dark;
+    --chev: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%2393a1af' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f151b;
+  --surface: #17202a;
+  --fg: #e8edf2;
+  --muted: #93a1af;
+  --line: #2a3643;
+  --a: #3cc3ae;
+  --a-soft: rgba(60, 195, 174, 0.14);
+  --b: #f0a24a;
+  --b-soft: rgba(240, 162, 74, 0.14);
+  --ink-btn: #e8edf2;
+  color-scheme: dark;
+  --chev: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%2393a1af' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--body);
+  font-size: 15px;
+  line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+}
+.wrap {
+  max-width: 980px;
+  margin: 0 auto;
+  display: grid;
+  gap: 22px;
+}
+h1 {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(1.7rem, 4.5vw, 2.4rem);
+  line-height: 1.1;
+  margin: 0;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.lede {
+  color: var(--muted);
+  margin: 6px 0 0;
+  max-width: 62ch;
+}
+h2 {
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: 1.05rem;
+  margin: 0 0 12px;
+}
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 18px;
+}
+.grid-in {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 14px;
+}
+label {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  align-items: end;
+  gap: 5px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+input,
+select {
+  font: 500 1rem var(--mono);
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0 10px;
+  width: 100%;
+  min-width: 0;
+  height: 42px;
+  line-height: 40px;
+}
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 32px;
+  cursor: pointer;
+  background-image: var(--chev);
+  background-position: right 12px center;
+  background-size: 10px 6px;
+  background-repeat: no-repeat;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input:focus-visible,
+select:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--a);
+  outline-offset: 2px;
+}
+.unit {
+  position: relative;
+}
+.unit input {
+  padding-right: 46px;
+}
+.unit span {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font: 400 0.85rem var(--mono);
+  color: var(--muted);
+  pointer-events: none;
+}
+.scen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+.sc {
+  border-radius: 8px;
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--line);
+}
+.sc.a {
+  background: var(--a-soft);
+  border-color: color-mix(in srgb, var(--a) 35%, transparent);
+}
+.sc.b {
+  background: var(--b-soft);
+  border-color: color-mix(in srgb, var(--b) 35%, transparent);
+}
+.sc-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex: none;
+}
+.a .dot {
+  background: var(--a);
+}
+.b .dot {
+  background: var(--b);
+}
+.sc-head input {
+  font: 600 1rem var(--body);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px dashed var(--line);
+  border-radius: 0;
+  padding: 2px 0;
+  height: auto;
+  line-height: normal;
+}
+.sc .row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.netto {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.netto b {
+  font-family: var(--mono);
+  color: var(--fg);
+  font-weight: 500;
+}
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+  align-items: center;
+}
+.presets span {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+button.chip {
+  font: 500 0.82rem var(--body);
+  color: var(--fg);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 12px;
+  cursor: pointer;
+}
+button.chip:hover {
+  border-color: var(--fg);
+}
+
+.results {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+.res {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px;
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.res .k {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.res .v {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.res.a .v {
+  color: var(--a);
+}
+.res.b .v {
+  color: var(--b);
+}
+.res .s {
+  font-size: 0.82rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.res.diff {
+  background: var(--fg);
+  color: var(--bg);
+  border-color: var(--fg);
+}
+.res.diff .k,
+.res.diff .s {
+  color: color-mix(in srgb, var(--bg) 70%, var(--fg));
+}
+
+.chart-box {
+  position: relative;
+}
+svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+svg text {
+  font-family: var(--mono);
+  font-size: 11px;
+  fill: var(--muted);
+}
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-top: 8px;
+}
+.legend i {
+  display: inline-block;
+  width: 18px;
+  height: 3px;
+  border-radius: 2px;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+.tip {
+  position: absolute;
+  pointer-events: none;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font: 400 0.8rem var(--mono);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  white-space: nowrap;
+}
+
+.tbl-wrap {
+  overflow-x: auto;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.88rem;
+  min-width: 520px;
+}
+th,
+td {
+  text-align: right;
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+th:first-child,
+td:first-child {
+  text-align: left;
+}
+th {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  font-weight: 600;
+}
+td {
+  font-family: var(--mono);
+}
+td.ca {
+  color: var(--a);
+}
+td.cb {
+  color: var(--b);
+}
+details summary {
+  cursor: pointer;
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: 1.05rem;
+}
+details[open] summary {
+  margin-bottom: 10px;
+}
+.note {
+  font-size: 0.82rem;
+  color: var(--muted);
+  max-width: 75ch;
+  margin: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  path.ln {
+    transition: d 0.25s;
+  }
+}

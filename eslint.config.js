@@ -1,17 +1,14 @@
 import js from "@eslint/js";
-import html from "eslint-plugin-html";
 import globals from "globals";
 
 export default [
   js.configs.recommended,
   {
-    // Lint the inline <script> in HTML pages as browser code
-    files: ["**/*.html"],
-    plugins: { html },
+    files: ["js/**/*.js"],
     languageOptions: { globals: globals.browser },
   },
   {
-    files: ["**/*.js"],
+    files: ["*.js"],
     languageOptions: { globals: globals.node },
   },
 ];
